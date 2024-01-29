@@ -1,7 +1,10 @@
 import cv2
  
 # Read the original image
-img = cv2.imread('test_programs/mountain.png') 
+img_name = 'bench'
+extension = '.jpeg'
+img_path = 'test_programs/' + img_name + extension
+img = cv2.imread(img_path) 
 # Display original image
 cv2.imshow('Original', img)
 cv2.waitKey(0)
@@ -16,17 +19,20 @@ sobelx = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5) # Sobel
 sobely = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=0, dy=1, ksize=5) # Sobel Edge Detection on the Y axis
 sobelxy = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=1, dy=1, ksize=5) # Combined X and Y Sobel Edge Detection
 # Display Sobel Edge Detection Images
-cv2.imshow('Sobel X', sobelx)
-cv2.waitKey(0)
-cv2.imshow('Sobel Y', sobely)
-cv2.waitKey(0)
-cv2.imshow('Sobel X Y using Sobel() function', sobelxy)
-cv2.waitKey(0)
+#cv2.imshow('Sobel X', sobelx)
+#cv2.waitKey(0)
+#cv2.imshow('Sobel Y', sobely)
+#cv2.waitKey(0)
+#cv2.imshow('Sobel X Y using Sobel() function', sobelxy)
+#cv2.waitKey(0)
  
 # Canny Edge Detection
 edges = cv2.Canny(image=img_blur, threshold1=100, threshold2=200) # Canny Edge Detection
 # Display Canny Edge Detection Image
+cv2.imwrite(img_name+'_edges.jpg', edges)
+cv2.waitKey(0)
 cv2.imshow('Canny Edge Detection', edges)
 cv2.waitKey(0)
+
  
 cv2.destroyAllWindows()
