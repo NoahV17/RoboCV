@@ -1,4 +1,9 @@
 import cv2
+
+# Next test is making a loop to take in a directory worth of files and 
+
+
+
  
 # Read the original image
 img_name = 'bench'
@@ -36,3 +41,5 @@ cv2.waitKey(0)
 
  
 cv2.destroyAllWindows()
+
+
