@@ -1,45 +1,63 @@
 import cv2
+import numpy as np
 
-# Next test is making a loop to take in a directory worth of files and 
+# Load YOLO
+net = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
+layer_names = net.getLayerNames()
+output_layers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
 
+# Loading video
+cap = cv2.VideoCapture('your_video.mp4')
 
+while(cap.isOpened()):
+    ret, img = cap.read()
+    if not ret:
+        break
 
- 
-# Read the original image
-img_name = 'bench'
-extension = '.jpeg'
-img_path = 'test_programs/' + img_name + extension
-img = cv2.imread(img_path) 
-# Display original image
-cv2.imshow('Original', img)
-cv2.waitKey(0)
- 
-# Convert to graycsale
-img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-# Blur the image for better edge detection
-img_blur = cv2.GaussianBlur(img_gray, (3,3), 0) 
- 
-# Sobel Edge Detection
-sobelx = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5) # Sobel Edge Detection on the X axis
-sobely = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=0, dy=1, ksize=5) # Sobel Edge Detection on the Y axis
-sobelxy = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=1, dy=1, ksize=5) # Combined X and Y Sobel Edge Detection
-# Display Sobel Edge Detection Images
-#cv2.imshow('Sobel X', sobelx)
-#cv2.waitKey(0)
-#cv2.imshow('Sobel Y', sobely)
-#cv2.waitKey(0)
-#cv2.imshow('Sobel X Y using Sobel() function', sobelxy)
-#cv2.waitKey(0)
- 
-# Canny Edge Detection
-edges = cv2.Canny(image=img_blur, threshold1=100, threshold2=200) # Canny Edge Detection
-# Display Canny Edge Detection Image
-cv2.imwrite(img_name+'_edges.jpg', edges)
-cv2.waitKey(0)
-cv2.imshow('Canny Edge Detection', edges)
-cv2.waitKey(0)
+    height, width, channels = img.shape
 
- 
+    # Detecting objects
+    blob = cv2.dnn.blobFromImage(img, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
+    net.setInput(blob)
+    outs = net.forward(output_layers)
+
+    class_ids = []
+    confidences = []
+    boxes = []
+
+    for out in outs:
+        for detection in out:
+            scores = detection[5:]
+            class_id = np.argmax(scores)
+            confidence = scores[class_id]
+            if confidence > 0.5:
+                # Object detected
+                center_x = int(detection[0] * width)
+                center_y = int(detection[1] * height)
+                w = int(detection[2] * width)
+                h = int(detection[3] * height)
+
+                # Rectangle coordinates
+                x = int(center_x - w / 2)
+                y = int(center_y - h / 2)
+
+                boxes.append([x, y, w, h])
+                confidences.append(float(confidence))
+                class_ids.append(class_id)
+
+    indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
+
+    for i in range(len(boxes)):
+        if i in indexes:
+            x, y, w, h = boxes[i]
+            label = str(classes[class_ids[i]])
+            cv2.rectangle(img, (x, y), (x + w, y + h), (0,255,0), 2)
+            cv2.putText(img, label, (x, y + 30), font, 2, (0,255,0), 3)
+
+    cv2.imshow("Image", img)
+    key = cv2.waitKey(1)
+    if key == 27:
+        break
+
+cap.release()
 cv2.destroyAllWindows()
-
-
